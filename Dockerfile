@@ -1,5 +1,6 @@
 FROM buildpack-deps:stable
 
+RUN apt-get update && apt-get -y install cmake ninja-build
 RUN useradd -ms /bin/bash ez80
 USER ez80
 WORKDIR /home/ez80
