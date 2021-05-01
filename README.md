@@ -2,4 +2,4 @@
 
  1. C/C++ compiler: LLVM with Clang
  2. Assembler, linker, object tools: GNU binutils
- 3. Standard library: patches from ZDS-II, fillers
+ 3. Standard library: MIT licensed from scratch reimplementation of intrinsics
