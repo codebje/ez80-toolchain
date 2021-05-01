@@ -1,4 +1,4 @@
-FROM buildpack-deps:sable
+FROM buildpack-deps:stable
 
 RUN useradd -ms /bin/bash ez80
 USER ez80
