@@ -1,6 +1,6 @@
 FROM buildpack-deps:stable
 
-RUN apt-get update && apt-get -y install cmake ninja-build
+RUN apt-get update && apt-get -y install cmake ninja-build lzip
 RUN useradd -ms /bin/bash ez80
 USER ez80
 WORKDIR /home/ez80
@@ -18,3 +18,9 @@ RUN cd llvm-project-1b767f5cc45505fb2d6285e717d439c6b1ea2e7f \
                       -DLLVM_DEFAULT_TARGET_TRIPLE=ez80-none-elf \
                       ../llvm-project-1b767f5cc45505fb2d6285e717d439c6b1ea2e7f/llvm \
     && ninja install
+RUN curl -LO https://mirror.freedif.org/GNU/binutils/binutils-2.36.1.tar.lz
+RUN tar xf binutils-2.36.1.tar.lz
+RUN cd binutils-2.36.1 \
+    && ./configure --target=z80-none-elf --program-prefix=ez80-none-elf- --prefix=/opt/local/ez80-none-elf \
+    && make -j4 \
+    && make install
