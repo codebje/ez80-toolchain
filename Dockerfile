@@ -1,9 +1,9 @@
 FROM buildpack-deps:stable
 
 RUN apt-get update && apt-get -y install cmake ninja-build lzip
-RUN useradd -ms /bin/bash ez80
-USER ez80
-WORKDIR /home/ez80
+#RUN useradd -ms /bin/bash ez80
+#USER ez80
+WORKDIR /root
 COPY clang/0001-Emit-GAS-sytax.patch 0001-Emit-GAS-sytax.patch
 RUN curl -LO https://github.com/jacobly0/llvm-project/archive/1b767f5cc455.zip
 RUN unzip 1b767f5cc455.zip
