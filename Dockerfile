@@ -24,3 +24,7 @@ RUN cd binutils-2.36.1 \
     && ./configure --target=z80-none-elf --program-prefix=ez80-none-elf- --prefix=/opt/local/ez80-none-elf \
     && make -j4 \
     && make install
+
+FROM buildpack-deps:stable
+COPY --from=0 /opt/local/ez80-none-elf /opt/local/ez80-none-elf
+ENV PATH=/opt/local/ez80-none-elf/bin:$PATH
