@@ -1,19 +1,7 @@
-From 8974d48fac9e60a84315bffd3992904b24397575 Mon Sep 17 00:00:00 2001
-From: Byron Ellacott <code@bje.id.au>
-Date: Mon, 1 Feb 2021 08:00:41 +1000
-Subject: [PATCH] Emit GAS sytax
-
----
- .../Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp  | 64 ++++++++++---------
- .../Z80/MCTargetDesc/Z80TargetStreamer.cpp    | 10 +--
- llvm/lib/Target/Z80/Z80InstrInfo.td           |  4 +-
- 3 files changed, 41 insertions(+), 37 deletions(-)
-
-diff --git a/llvm/lib/Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp b/llvm/lib/Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp
-index 9a8109b7b714..458fa87d5617 100644
---- a/llvm/lib/Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp
-+++ b/llvm/lib/Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp
-@@ -25,41 +25,45 @@ Z80MCAsmInfoELF::Z80MCAsmInfoELF(const Triple &T) {
+diff -urb A/llvm/lib/Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp B/llvm/lib/Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp
+--- A/llvm/lib/Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp	2023-12-13 09:14:57
++++ B/llvm/lib/Target/Z80/MCTargetDesc/Z80MCAsmInfo.cpp	2023-12-15 21:17:43
+@@ -33,44 +33,49 @@
    DollarIsPC = true;
    SeparatorString = nullptr;
    CommentString = ";";
@@ -30,15 +18,19 @@ index 9a8109b7b714..458fa87d5617 100644
 -  BlockSeparator = " dup ";
 -  AsciiDirective = ByteListDirective = Data8bitsDirective = "\tdb\t";
 +  ZeroDirective = "\tds\t";
-+  //ZeroDirective =
-+  AscizDirective = nullptr;
++  //ZeroDirective = AscizDirective = nullptr;
 +  //BlockSeparator = " dup ";
++  //AsciiDirective = ByteListDirective = Data8bitsDirective = "\tdb\t";
++  AscizDirective = nullptr;
 +  AsciiDirective = nullptr;
 +  ByteListDirective = "\tdb\t";
-   OctalLiteralSyntax = AOLS_TrailingO;
+   NumberLiteralSyntax = ANLS_PlainDecimal;
 -  CharacterLiteralSyntax = ACLS_SingleQuotes;
-+  CharacterLiteralSyntax = ACLS_Unknown; //ACLS_SingleQuotePrefix; //ACLS_SingleQuotes;
-   StringLiteralEscapeSyntax = ASLES_RepeatDelimiter;
++  CharacterLiteralSyntax = ACLS_Unknown; // ACLS_SingleQuotes;
+   HasPairedDoubleQuoteStringConstants = true;
+   HasBackslashEscapesInStringConstants = false;
+   StringConstantsEscapeNonPrint = EscapeNonPrint;
+   StringConstantsRequiredEscapes = {"\n\r\32", 4}; // include null
 +  Data8bitsDirective = "\tdb\t";
    Data16bitsDirective = "\tdw\t";
 -  Data24bitsDirective = "\tdl\t";
@@ -47,9 +39,9 @@ index 9a8109b7b714..458fa87d5617 100644
 -  DataULEB128Directive = "\tuleb128\t";
 -  DataSLEB128Directive = "\tsleb128\t";
 -  SectionDirective = "\tsection\t";
-+  Data24bitsDirective = "\td24\t";
-+  Data32bitsDirective = "\td32\t";
-+  Data64bitsDirective = nullptr;//"\tdq\t";
++  Data24bitsDirective = "\td24\t"; //"\tdl\t";
++  Data32bitsDirective = "\td32\t"; //"\tdd\t";
++  Data64bitsDirective = nullptr; //"\tdq\t";
 +  DataULEB128Directive = "\t.uleb128\t";
 +  DataSLEB128Directive = "\t.sleb128\t";
 +  SectionDirective = "\t.section\t";
@@ -84,7 +76,7 @@ index 9a8109b7b714..458fa87d5617 100644
    DwarfCFIDirectivePrefix = "\tcfi_";
  }
  
-@@ -68,7 +72,7 @@ MCSection *Z80MCAsmInfoELF::getNonexecutableStackSection(MCContext &Ctx) const {
+@@ -79,7 +84,7 @@
  }
  
  bool Z80MCAsmInfoELF::isAcceptableChar(char C) const {
@@ -93,7 +85,7 @@ index 9a8109b7b714..458fa87d5617 100644
  }
  
  bool Z80MCAsmInfoELF::shouldOmitSectionDirective(StringRef SectionName) const {
-@@ -78,9 +82,9 @@ bool Z80MCAsmInfoELF::shouldOmitSectionDirective(StringRef SectionName) const {
+@@ -89,10 +94,10 @@
  const char *Z80MCAsmInfoELF::getBlockDirective(int64_t Size) const {
    switch (Size) {
    default: return nullptr;
@@ -107,17 +99,16 @@ index 9a8109b7b714..458fa87d5617 100644
 +  case 4: return Data32bitsDirective;
    }
  }
-diff --git a/llvm/lib/Target/Z80/MCTargetDesc/Z80TargetStreamer.cpp b/llvm/lib/Target/Z80/MCTargetDesc/Z80TargetStreamer.cpp
-index 4ca0d9c5fa0f..350e1a18dc56 100644
---- a/llvm/lib/Target/Z80/MCTargetDesc/Z80TargetStreamer.cpp
-+++ b/llvm/lib/Target/Z80/MCTargetDesc/Z80TargetStreamer.cpp
-@@ -31,29 +31,29 @@ void Z80TargetAsmStreamer::emitLabel(MCSymbol *Symbol) {
+ 
+diff -urb A/llvm/lib/Target/Z80/MCTargetDesc/Z80TargetStreamer.cpp B/llvm/lib/Target/Z80/MCTargetDesc/Z80TargetStreamer.cpp
+--- A/llvm/lib/Target/Z80/MCTargetDesc/Z80TargetStreamer.cpp	2023-12-13 09:14:57
++++ B/llvm/lib/Target/Z80/MCTargetDesc/Z80TargetStreamer.cpp	2023-12-15 20:51:47
+@@ -32,16 +32,16 @@
  
  void Z80TargetAsmStreamer::emitAlign(Align Alignment) {
    if (auto Mask = Alignment.value() - 1)
--    OS << "\trb\t" << Mask << " - ($ - $$ + " << Mask << ") and not " << Mask
-+    OS << "\tds\t" << Mask << " - ($ - $$ + " << Mask << ") and not " << Mask
-        << "\n";
+-    OS << "\trb\t($$ - $) and " << Mask << '\n';
++    OS << "\tds\t($$ - $) and " << Mask << '\n';
  }
  
  void Z80TargetAsmStreamer::emitBlock(uint64_t NumBytes) {
@@ -131,6 +122,8 @@ index 4ca0d9c5fa0f..350e1a18dc56 100644
 +  OS << "\t.local\t";
    Symbol->print(OS, MAI);
    OS << '\n';
+ }
+@@ -53,13 +53,13 @@
  }
  
  void Z80TargetAsmStreamer::emitGlobal(MCSymbol *Symbol) {
@@ -146,28 +139,24 @@ index 4ca0d9c5fa0f..350e1a18dc56 100644
    Symbol->print(OS, MAI);
    OS << '\n';
  }
-diff --git a/llvm/lib/Target/Z80/Z80InstrInfo.td b/llvm/lib/Target/Z80/Z80InstrInfo.td
-index ad26337c2fe4..02d111d2123a 100644
---- a/llvm/lib/Target/Z80/Z80InstrInfo.td
-+++ b/llvm/lib/Target/Z80/Z80InstrInfo.td
-@@ -348,7 +348,7 @@ let isCall = 1, isTerminator = 1, isReturn = 1, isBarrier = 1 in {
+diff -urb A/llvm/lib/Target/Z80/Z80InstrInfo.td B/llvm/lib/Target/Z80/Z80InstrInfo.td
+--- A/llvm/lib/Target/Z80/Z80InstrInfo.td	2023-12-13 09:14:57
++++ B/llvm/lib/Target/Z80/Z80InstrInfo.td	2023-12-15 20:47:42
+@@ -378,7 +378,7 @@
  
- let isBranch = 1, isTerminator = 1 in {
-   let isBarrier = 1 in {
+ let isBranch = true, isTerminator = true in {
+   let isBarrier = true in {
 -    def JQ : Pseudo<"jq", "\t$tgt", "", (outs), (ins jmptarget:$tgt),
 +    def JQ : Pseudo<"jp", "\t$tgt", "", (outs), (ins jmptarget:$tgt),
                      [(br bb:$tgt)]>;
-     def JR   : Io  <NoPre, 0x18, "jr", "\t$tgt", "",
+     def JR   : Io  <  NoPre, 0x18, "jr", "\t$tgt", "",
                      (outs), (ins jmptargetoff:$tgt)>;
-@@ -364,7 +364,7 @@ let isBranch = 1, isTerminator = 1 in {
-     }
-   }
+@@ -397,7 +397,7 @@
+   def DJNZ : Io  <  NoPre, 0x10, "djnz", "\t$tgt", "",
+                   (outs), (ins jmptargetoff:$tgt)>;
    let Uses = [F] in {
 -    def JQCC : Pseudo<"jq", "\t$cc, $tgt", "",
 +    def JQCC : Pseudo<"jp", "\t$cc, $tgt", "",
                        (outs), (ins jmptarget:$tgt, cc:$cc),
                        [(Z80brcond bb:$tgt, imm:$cc, F)]>;
-     def JRCC   : Io  <NoPre, 0x18, "jr", "\t$cc, $tgt", "",
--- 
-2.28.0
-
+     def JRCC   : Io  <  NoPre, 0x18, "jr", "\t$cc, $tgt", "",
